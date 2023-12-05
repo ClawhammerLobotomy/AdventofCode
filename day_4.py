@@ -1,7 +1,7 @@
 import re
 import math
 from itertools import count
-
+from collections import defaultdict
 CARD_NO_PATTERN = r'\d+'
 INPUT_FILE = 'd4_test_input.txt'
 INPUT_FILE = 'd4_input.txt'
@@ -30,10 +30,31 @@ class Card(object):
         # self.card_copies = [Card(x) for i, x in enumerate(LINE_LIST) if self.card_no < i+1 <= self.card_no+self.matching_count]
         self.card_copies = [Card(x) for x in LINE_LIST[self.card_no:self.card_no+self.matching_count]]
 
+def first_attempt():
+    card_classes = [Card(l) for l in LINE_LIST]
+    total_score = sum([x.score for x in card_classes if x.winner])
+    total_cards = card_classes[-1].id
+    print(f'Total Score: {total_score}') # 19135 - Correct
+    print(f'Total Cards: {total_cards}') # 5704953 - Correct (Took forever to process script)
 
-card_classes = [Card(l) for l in LINE_LIST]
+# first_attempt()
 
-total_score = sum([x.score for x in card_classes if x.winner])
-total_cards = card_classes[-1].id
-print(f'Total Score: {total_score}') # 19135 - Correct
-print(f'Total Cards: {total_cards}') # 5704953 - Correct (Took forever to process script)
+def second_attempt():
+    N = defaultdict(int)
+    card_score = 0
+    for i, l in enumerate(LINE_LIST):
+        N[i] += 1
+        first, play_nos = l.split('|')
+        card_no, winning_nos = first.split(':')
+        winning_nos = [int(x) for x in winning_nos.strip().split(' ') if x != '']
+        play_nos = [int(x) for x in play_nos.strip().split(' ') if x != '']
+        matching_count = len(set(play_nos) & set(winning_nos))
+        card_no = int(re.search(CARD_NO_PATTERN,card_no).group(0))
+        if matching_count > 0:
+            card_score += 2**(matching_count-1) # 2**(matching_count-1) is shorthand for math.pow(2, matching_count-1)
+        for j in range(matching_count):
+            N[i+1+j] += N[i]
+
+    print(card_score)
+    print(sum(N.values()))
+second_attempt()
