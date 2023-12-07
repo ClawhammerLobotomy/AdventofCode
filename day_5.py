@@ -1,7 +1,7 @@
 from collections import namedtuple, defaultdict, deque
 from itertools import chain
 INPUT_FILE = 'd5_input.txt'
-INPUT_FILE = 'd5_test_input.txt'
+# INPUT_FILE = 'd5_test_input.txt'
 
 with open(INPUT_FILE, 'r') as f:
     LINE_LIST = f.read()
@@ -78,6 +78,25 @@ def find_location(seed):
 #         return right_min + (value-left_min)*scaleFactor
 
 #     return interp_fn
+def insertion_sort(list1):  
+    # list1 = list(list1)
+    # Outer loop to traverse on len(list1)  
+    for i in range(1, len(list1)):  
+
+        a = list1[i]  
+
+        # Move elements of list1[0 to i-1], 
+        # which are greater to one position
+        # ahead of their current position  
+        j = i - 1 
+        
+        while j >= 0 and a < list1[j]:  
+            list1[j + 1] = list1[j]  
+            j -= 1 
+                
+        list1[j + 1] = a  
+            
+    return list1  
 def bubbleSort(arr):
      
     n = count(arr)
@@ -104,7 +123,7 @@ last_location = 10**100
 for s,r in seed_list_2:
     print(s,r)
     # location_list.append(min(map(find_location,range(int(s),int(s)+int(r)))))
-    location_list.append(map(bubbleSort,map(find_location,range(int(s),int(s)+int(r))))) # Fastest
+    location_list.append(map(find_location,range(int(s),int(s)+int(r)))) # Fastest
     # location_list.append(min([find_location(x) for x in range(int(s),int(s)+int(r))]))
     # for x in range(int(s),int(s)+int(r)):
     #     latest_location = find_location(x)
@@ -116,6 +135,6 @@ for s,r in seed_list_2:
 # print(location_list)
 # lowest_location = min([find_location(seed) for seed in seed_list])
 # lowest_location_2 = min([min(x) for x in location_list])
-lowest_location_2 = min(location_list)
+lowest_location_2 = min([insertion_sort(list(x))[0] for x in location_list])
 # print(f'Lowest Location 1: {lowest_location}')
 print(f'Lowest Location 2: {lowest_location_2}')
