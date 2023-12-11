@@ -1,7 +1,7 @@
 from collections import namedtuple, defaultdict, deque
 from itertools import chain
 INPUT_FILE = 'd5_input.txt'
-# INPUT_FILE = 'd5_test_input.txt'
+INPUT_FILE = 'd5_test_input.txt'
 
 with open(INPUT_FILE, 'r') as f:
     LINE_LIST = f.read()
@@ -31,7 +31,7 @@ for l in parts:
     first, rest = l.split(':')
     if 'seeds' in first:
         seed_list = rest.split()
-        seed_list_2 = [(x,y) for x,y in zip(seed_list[0::2],seed_list[1::2])]
+        seed_list_2 = [(int(x),int(y)) for x,y in zip(seed_list[0::2],seed_list[1::2])]
         # dict_range_start = int(min(seed_list))
         # dict_range_end = int(max(seed_list))
     else:
@@ -66,75 +66,31 @@ def find_location(seed):
     # print(f'Seed: {seed} - {lookup_almanac} : {current_index}')
     return current_index
 
-# def make_interpolater(left_min, left_max, right_min,right_max):
-#     leftSpan = left_max - left_min  
-#     rightSpan = right_max - right_min  
+def find_lowest(seed_pair):
+    seed_start, seed_range = seed_pair.pop()
+    seed_end = seed_start+seed_range
+    current_almanac = 'seed'
+    while current_almanac != 'location':
+        lookup_almanac = almanac_key[current_almanac]
+        next_start = 0
+        next_end = 0
+        for keys in almanac[lookup_almanac]:
+            next_start += keys[0]-keys[1]
+            next_end += keys[0]-keys[1]
+            if current_index in range(keys[1],keys[1]+keys[2]):
+                current_index += keys[0]-keys[1]
 
-#     # Compute the scale factor between left and right values 
-#     scaleFactor = float(rightSpan) / float(leftSpan) 
 
-#     # create interpolation function using pre-calculated scaleFactor
-#     def interp_fn(value):
-#         return right_min + (value-left_min)*scaleFactor
-
-#     return interp_fn
-def insertion_sort(list1):  
-    # list1 = list(list1)
-    # Outer loop to traverse on len(list1)  
-    for i in range(1, len(list1)):  
-
-        a = list1[i]  
-
-        # Move elements of list1[0 to i-1], 
-        # which are greater to one position
-        # ahead of their current position  
-        j = i - 1 
-        
-        while j >= 0 and a < list1[j]:  
-            list1[j + 1] = list1[j]  
-            j -= 1 
-                
-        list1[j + 1] = a  
-            
-    return list1  
-def bubbleSort(arr):
-     
-    n = count(arr)
- 
-    # For loop to traverse through all 
-    # element in an array
-    for i in range(n):
-        for j in range(0, n - i - 1):
-             
-            # Range of the array is from 0 to n-i-1
-            # Swap the elements if the element found 
-            #is greater than the adjacent element
-            if arr[j] > arr[j + 1]:
-                arr[j], arr[j + 1] = arr[j + 1], arr[j]
-def count(iterable):
-    if hasattr(iterable, '__len__'):
-            return len(iterable)
-
-    d = deque(enumerate(iterable, 1), maxlen=1)
-    return d[0][0] if d else 0
-# scaler = make_interpolater()
 location_list = []
-last_location = 10**100
-for s,r in seed_list_2:
-    print(s,r)
-    # location_list.append(min(map(find_location,range(int(s),int(s)+int(r)))))
-    location_list.append(map(find_location,range(int(s),int(s)+int(r)))) # Fastest
-    # location_list.append(min([find_location(x) for x in range(int(s),int(s)+int(r))]))
-    # for x in range(int(s),int(s)+int(r)):
-    #     latest_location = find_location(x)
-    #     # print(f'Current location: {latest_location}')
-    #     if latest_location < last_location:
-    #         print(f'Lowest so far: {latest_location}')
-    #         location_list.append(latest_location)
-    #         last_location = latest_location
+
+for sr in seed_list_2:
+    location_list.append(find_lowest([sr]))
+
+# for s,r in seed_list_2:
+#     print(s,r)
+#     location_list.append(map(find_location,range(int(s),int(s)+int(r)))) # Fastest
 # print(location_list)
-# lowest_location = min([find_location(seed) for seed in seed_list])
+lowest_location = min([find_location(seed) for seed in seed_list])
 # lowest_location_2 = min([min(x) for x in location_list])
-lowest_location_2 = min([insertion_sort(list(x))[0] for x in location_list])
-# print(f'Lowest Location 1: {lowest_location}')
-print(f'Lowest Location 2: {lowest_location_2}')
+print(f'Lowest Location 1: {lowest_location}')
+# print(f'Lowest Location 2: {lowest_location_2}')
