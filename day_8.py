@@ -1,9 +1,7 @@
-from collections import namedtuple, defaultdict, deque, Counter
-from itertools import chain, groupby
+from collections import defaultdict
 import math
 INPUT_FILE = 'd8_input.txt'
 # INPUT_FILE = 'd8_test_input.txt'
-
 with open(INPUT_FILE, 'r') as f:
     LINE_LIST = f.read().split('\n\n')
 
@@ -24,25 +22,23 @@ def human_traverse():
             next_node = current_node[int(d)]
             steps +=1
             current_node = map_nodes[next_node]
-    print(f'Steps taken: {steps}') # 16579
+    return steps
 
-def ghost_traverse(starting_nodes):
+def ghost_traverse(start_node):
     steps = 0
-    next_nodes = starting_nodes
-    current_nodes = [map_nodes[x] for x in starting_nodes]
-    while not all(nn[-1] == 'Z' for nn in next_nodes):# next_node[-1] != 'Z':
+    next_node = start_node
+    current_node = map_nodes[next_node]
+    while not next_node[-1] =='Z':
         for d in instruction:
-            next_nodes = [x[int(d)] for x in current_nodes]
-            steps +=1
-            current_nodes = [map_nodes[x] for x in next_nodes]
-    return steps            
-            # yield steps
-"""
-Get a grouping of starting nodes
-Send all 
-"""
+            next_node = current_node[int(d)]
+            steps +=1 
+            current_node = map_nodes[next_node]
+            yield(steps,next_node)
+
 starting_nodes = [x for x in map_nodes.keys() if x[-1] == 'A']
-test = ghost_traverse(starting_nodes)
-# for x in test:
-    # print(x)
-print(test)
+most_steps = math.lcm(*[e[0] for (s,*m,e) in [ghost_traverse(x) for x in starting_nodes]])
+human_steps = human_traverse()
+
+print(f'Human steps taken: {human_steps}') # 16579
+print(f'Ghost steps taken: {most_steps}')
+# 12927600769609 = too low??? Mistyped it I guess. This is correct.
