@@ -1,6 +1,6 @@
-from collections import namedtuple, defaultdict, deque, Counter
-from itertools import chain, groupby
-import math
+from collections import defaultdict, Counter
+from itertools import chain
+
 INPUT_FILE = 'd7_input.txt'
 # INPUT_FILE = 'd7_test_input.txt'
 
@@ -17,10 +17,10 @@ class CamelHand:
         self.joker_card_rankings = []
         self.joker_rule()
         self.card_rank()
-        self.hand_type()
-        self.joker_type()
-    
-    
+        self.type = self.type_set(self.hand)
+        self.joker_type = self.type_set(self.joker_hand)
+
+
     def joker_rule(self):
         c = Counter(self.hand)
         mc = c.most_common()
@@ -29,63 +29,28 @@ class CamelHand:
         else: # use the most common non-joker card for replacement.
             mc = [c[0] for c in c.most_common() if c[0] !='J'][0]
         self.joker_hand = self.hand.replace('J',mc)
-        
 
-    def joker_type(self):
-        hand = self.joker_hand
+
+    def type_set(self, hand):
+        hand = hand
         c = Counter(hand)
         n = len(c)
         p = [x for x in c.values()]
         if n == 1:
-            self.joker_type = 7
-            return # Five of a kind
+            return 7 # Five of a kind
         if n == 2:
             if max(p) == 4:
-                self.joker_type = 6
-                return # Four of a kind
+                return 6 # Four of a kind
             if (set([2,3]) & set(p)) == {2,3}:
-                self.joker_type = 5
-                return # Full house
+                return 5 # Full house
         if n == 3:
             if max(p) == 2:
-                self.joker_type = 3
-                return # Two pair
-            self.joker_type = 4
-            return # Three of a kind
+                return 3 # Two pair
+            return 4 # Three of a kind
         if n == 4:
-            self.joker_type = 2
-            return # One pair
-        self.joker_type = 1
-        return # High card
-    
+            return 2 # One pair
+        return 1 # High card
 
-    def hand_type(self):
-        hand = self.hand
-        c = Counter(hand)
-        n = len(c)
-        p = [x for x in c.values()]
-        if n == 1:
-            self.type = 7
-            return # Five of a kind
-        if n == 2:
-            if max(p) == 4:
-                self.type = 6
-                return # Four of a kind
-            if (set([2,3]) & set(p)) == {2,3}:
-                self.type = 5
-                return # Full house
-        if n == 3:
-            if max(p) == 2:
-                self.type = 3
-                return # Two pair
-            self.type = 4
-            return # Three of a kind
-        if n == 4:
-            self.type = 2
-            return # One pair
-        self.type = 1
-        return # High card
-    
 
     def card_rank(self):
         for c in self.hand:
@@ -93,8 +58,8 @@ class CamelHand:
             self.joker_card_rankings += [i for i, x in enumerate(joker_card_rank) if x==c]
 
 
-def hand_ranking(hands):
-    return sorted(hands, key=lambda x: x.card_rankings)
+def hand_ranking(hands,rank):
+    return sorted(hands, key=lambda x: getattr(x,rank))
 
 
 def groupby_unsorted(seq, key=lambda x: x):
@@ -115,7 +80,7 @@ joker_hand_groups = sorted(joker_hand_groups, key=lambda x:x[0], reverse=True)
 
 full_ranking = []
 for key, group in hand_groups:
-    full_ranking.append(hand_ranking(group))
+    full_ranking.append(hand_ranking(group,'card_rankings'))
 full_ranking = list(chain.from_iterable(full_ranking))
 
 for i, f in enumerate(full_ranking):
@@ -128,7 +93,7 @@ print(f'Total winnings p1: {total_winnings}') # 250058342
 
 full_ranking = []
 for key, group in joker_hand_groups:
-    full_ranking.append(sorted(group, key=lambda x: x.joker_card_rankings))
+    full_ranking.append(hand_ranking(group,'joker_card_rankings'))
 full_ranking = list(chain.from_iterable(full_ranking))
 
 for i, f in enumerate(full_ranking):
@@ -137,5 +102,5 @@ for i, f in enumerate(full_ranking):
 
 total_winnings = sum(f.joker_score for f in full_ranking)
 print(f'Total winnings p2: {total_winnings}') # 250506580
-# 251149259 - Too high
+# 251149259 - Too high (Jokers were not being replaced properly if they were the most common card.)
 # 251106741 - Too high

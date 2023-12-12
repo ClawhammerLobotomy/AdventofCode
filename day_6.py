@@ -21,5 +21,5 @@ def margin_find(races):
         winning_races.append(win_count)
     return math.prod(winning_races)
 
-print('Part 1:',margin_find(p1races))
-print('Part 2:',margin_find(p2races))
+print('Part 1:',margin_find(p1races)) # 138915
+print('Part 2:',margin_find(p2races)) # 27340847
