@@ -12,7 +12,20 @@ Check them for connectability to current node
 If they connect, repeat for the process.
 As nodes are traversed, replace the current character with a # symbol.
 """
-pipeNode = namedtuple('pipeNode',['character','ypos','xpos','connections','connects'])
+
+"""
+Start with S
+Replace with valid pipe to record the valid connectors
+Record the position of Start to know when we get back
+
+Add current position to list of "Seen"
+Check 4 nodes around current.
+Compare if they can be connected to current node.
+If they can, Pick one to use that isn't in the "SEEN" list
+repeat for this node
+"""
+
+# pipeNode = namedtuple('pipeNode',['character','ypos','xpos','connections','connects'])
 
 # Build the matrix
 PIPE_MATRIX = []
