@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 INPUT_FILE = 'd10_input.txt'
-INPUT_FILE = 'd10_test_input.txt'
+# INPUT_FILE = 'd10_test_input.txt'
 with open(INPUT_FILE, 'r') as f:
     L = f.read().split()
 
@@ -44,6 +44,18 @@ for x in L:
 #     '#':'USED'
 # }
 connection_dict = {
+    'J':('RIGHT','BOTTOM'),
+    'F':('TOP','LEFT'),
+    '7':('RIGHT','TOP'),
+    'L':('BOTTOM','LEFT'),
+    '-':('LEFT','RIGHT'),
+    '|':('TOP','BOTTOM'),
+    '.':('GROUND'),
+    'S':('START'),
+    '#':('USED')
+}
+
+travel_directions = {
     'F':('RIGHT','BOTTOM'),
     'J':('TOP','LEFT'),
     'L':('RIGHT','TOP'),
@@ -51,9 +63,13 @@ connection_dict = {
     '-':('LEFT','RIGHT'),
     '|':('TOP','BOTTOM'),
     '.':('GROUND'),
-    'S':('START'),
-    '#':('USED')
+    'S':('RIGHT','BOTTOM','TOP','LEFT')
 }
+
+VALID_RIGHT = ('7','J','-')
+VALID_LEFT = ('L','-','F')
+VALID_TOP = ('|','7','F')
+VALID_BOTTOM = ('|','L','J')
 
 class pipeNode:
     def __init__(self,c,y,x):
@@ -62,37 +78,70 @@ class pipeNode:
         self.x = x
         self.connections = connection_dict[self.c]
         self.visited = False
-        # self.surrounding_nodes_get()
+        self.travel_directions = travel_directions[self.c]
+        self.valid = False
+        self.start = False
+        if self.c == 'S':
+            self.start = True
+
+
     def surrounding_nodes_get(self):
         lb = self.x-1
         rb = self.x+1
         tb = self.y-1
         bb = self.y+1
         if lb < 0:
-            ln = None
+            self.ln = None
         else:
-            ln = PIPE_MATRIX[self.y][lb]
+            self.ln = PIPE_MATRIX[self.y][lb]
+            # if any(x in self.travel_directions for x in ln.connections):
+            if self.ln.c in VALID_LEFT:
+                self.ln.valid = True
         if rb > len(PIPE_MATRIX[0])-1:
-            rn = None
+            self.rn = None
         else:
-            rn = PIPE_MATRIX[self.y][rb]
+            self.rn = PIPE_MATRIX[self.y][rb]
+            # if any(x in self.travel_directions for x in rn.connections):
+            if self.rn.c in VALID_RIGHT:
+                self.rn.valid = True
         if tb < 0:
-            tn = None
+            self.tn = None
         else:
-            tn = PIPE_MATRIX[tb][self.x]
+            self.tn = PIPE_MATRIX[tb][self.x]
+            # if any(x in self.travel_directions for x in tn.connections):
+            if self.tn.c in VALID_TOP:
+                self.tn.valid = True
         if bb > len(PIPE_MATRIX)-1:
-            bn = None
+            self.bn = None
         else:
-            bn = PIPE_MATRIX[bb][self.x]
-        node_set = [ln,rn,tn,bn]
-        self.next_node = [n for n in node_set if n != None and any(y in self.connections for y in n.connections)]
+            self.bn = PIPE_MATRIX[bb][self.x]
+            # if any(x in self.travel_directions for x in bn.connections):
+            if self.bn.c in VALID_BOTTOM:
+                self.bn.valid = True
+
+
+    def start_replace(self):
+        directions = []
+        if any(x == self.rn.c for x in VALID_RIGHT if self.rn):
+            directions.append('RIGHT')
+        if any(x == self.ln.c for x in VALID_LEFT if self.ln):
+            directions.append('LEFT')
+        if any(x == self.tn.c for x in VALID_TOP if self.tn):
+            directions.append('TOP')
+        if any(x == self.bn.c for x in VALID_BOTTOM if self.bn):
+            directions.append('BOTTOM')
+        for k,d in travel_directions.items():
+            if set(directions) == set(d):
+                self.c = k
+
 
 def connection_check(node,type):
     if type in node:
         return True
     return False
 
-def find_start(PIPE_MATRIX):
+
+def classify_nodes(PIPE_MATRIX):
     for i, x in enumerate(PIPE_MATRIX):
         for j, y in enumerate(x):
             PIPE_MATRIX[i][j] = pipeNode(y,i,j)
@@ -141,25 +190,41 @@ def check_near_positions(starting_node,previous_node=None):
     #             node_set[i] = None
     return connecting_nodes
 # print(check_near_positions(2,0))
-start = find_start(PIPE_MATRIX)
+classify_nodes(PIPE_MATRIX)
+
 for x in PIPE_MATRIX:
     for y in x:
         y.surrounding_nodes_get()
-i = 0
-node_list = check_near_positions(start)
-while "S" not in [x.c for x in node_list] and node_list != []:
-    print(i)
+starting_node = [j for x in PIPE_MATRIX for j in x if j.start][0]
+starting_node.start_replace()
+starting_node.travel_directions = travel_directions[starting_node.c]
+
+seen = []
+def next_node(n,previous_node_pos):
+    path = [x for x in n.travel_directions if x != previous_node_pos][0]
+    match path:
+        case 'RIGHT':
+            nn = n.rn
+            pnp = 'LEFT'
+        case 'LEFT':
+            nn = n.ln
+            pnp = 'RIGHT'
+        case 'BOTTOM':
+            nn = n.bn
+            pnp = 'TOP'
+        case 'TOP':
+            nn = n.tn
+            pnp = 'BOTTOM'
+    return nn, pnp
+
+nn,pnp = next_node(starting_node,starting_node.travel_directions[1])
+i = 1
+while starting_node not in seen:
+    nn, pnp = next_node(nn,pnp)
+    seen.append(nn)
     i += 1
-    print(node_list)
-    for n in node_list:
-        if n == None:
-            continue
-        if n.c == 'S':
-            print('returned back to start in {i} iterations')
-            break
-        node_list = check_near_positions(n)
-        print(n, check_near_positions(n))
-        
-# y = check_near_positions(2,1,('S',2,0))
-# print(y)
-print(PIPE_MATRIX)
+    # print(nn.c)
+    # print(i)
+
+number_of_steps = i//2
+print(number_of_steps) # 7086 part 1
