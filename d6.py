@@ -159,7 +159,7 @@ def map_solve(input_map,first_solve=False):
 loop_count = 0
 while not map_edge:
     exit_position = map_solve(x, first_solve=True)
-while not exit_position in loop_obstacles:# or not exit_position in loops_tried:
+while not exit_position in loop_obstacles or not exit_position in loops_tried:
 
     map_edge = False
     loop_try = False
@@ -170,7 +170,7 @@ while not exit_position in loop_obstacles:# or not exit_position in loops_tried:
 
 # loops = len(list(set(loop_indexes)))
 loops = len(loop_indexes)
-
+loops_2 = len(loop_obstacles)
 
 # spaces = count_x(x)
 # print(f'Part 1: {spaces}')
